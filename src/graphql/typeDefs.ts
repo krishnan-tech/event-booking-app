@@ -2,9 +2,10 @@ import { gql } from "apollo-server-express";
 
 export const typeDefs = gql`
   type Booking {
+    _id: ID!
     event: Event!
     user: User!
-    cratedAt: String!
+    createdAt: String!
     updatedAt: String!
   }
 

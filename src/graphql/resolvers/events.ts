@@ -1,7 +1,7 @@
 import Event from "../../models/event";
 import User from "../../models/users";
-import bcrypt from "bcryptjs";
 import Booking from "../../models/booking";
+import bcrypt from "bcryptjs";
 
 interface EventInput {
   title: string;
@@ -45,12 +45,20 @@ const userBinds = async (userId: string) => {
   }
 };
 
+const singleEvent = async (eventId: string) => {
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      throw new Error("No event exists for: " + eventId);
+    }
+    return { ...event._doc, creator: userBinds.bind(this, event?.creator) };
+  } catch (e) {}
+};
+
 export default {
   Query: {
     async events() {
       try {
-        // const events = await Event.find();
-        // return events;
         return Event.find().then((events) => {
           return events.map((event) => {
             return {
@@ -61,16 +69,20 @@ export default {
           });
         });
       } catch (e) {
-        // const err = typeof e
         return errFunction(e);
       }
     },
 
-    // async bookings() {
-    //   const bookings = await Booking.find();
-    //   console.log(bookings);
-    //   return bookings;
-    // },
+    async bookings() {
+      const bookings = await Booking.find();
+      return bookings.map((booking) => {
+        return {
+          ...booking._doc,
+          user: userBinds.bind(this, booking._doc.user),
+          event: singleEvent.bind(this, booking._doc.event),
+        };
+      });
+    },
   },
 
   Mutation: {
@@ -125,10 +137,18 @@ export default {
       return result;
     },
 
-    // async bookEvent(_, { eventId }) {
-    //   const bookings = await Booking.find();
-    //   console.log(bookings);
-    //   return bookings;
-    // },
+    async bookEvent(_: any, { eventId }: { eventId: string }) {
+      const fetchEvent = await Event.findOne({ _id: eventId });
+      const booking = new Booking({
+        user: "60a26da5078d3252208571a1",
+        event: fetchEvent,
+      });
+      const result = await booking.save();
+      return {
+        ...result._doc,
+        user: userBinds.bind(this, booking._doc.user),
+        event: singleEvent.bind(this, booking._doc.event),
+      };
+    },
   },
 };

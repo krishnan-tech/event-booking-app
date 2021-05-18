@@ -1,14 +1,19 @@
 import { Document, model, Schema } from "mongoose";
 
-interface bookingSchema extends Document {
-  event: {
-    type: typeof Schema.Types.ObjectId;
-    ref: string;
-  };
-  user: {
-    types: typeof Schema.Types.ObjectId;
-    res: string;
-  };
+interface BookingSchema extends Document {
+  _doc: any;
+  event: [
+    {
+      type: typeof Schema.Types.ObjectId;
+      ref: string;
+    }
+  ];
+  user: [
+    {
+      type: typeof Schema.Types.ObjectId;
+      ref: string;
+    }
+  ];
 }
 
 const bookingSchema = new Schema(
@@ -18,11 +23,11 @@ const bookingSchema = new Schema(
       ref: "Event",
     },
     user: {
-      types: Schema.Types.ObjectId,
-      res: "User",
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true }
 );
 
-export default model<bookingSchema>("Booking", bookingSchema);
+export default model<BookingSchema>("Booking", bookingSchema);
