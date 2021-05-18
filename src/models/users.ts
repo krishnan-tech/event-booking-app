@@ -14,6 +14,7 @@ import { Document, model, Schema } from "mongoose";
 // }
 
 interface UserSchema extends Document {
+  _doc: any;
   email: string;
   password: string;
   createEvents: [

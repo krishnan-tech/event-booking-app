@@ -1,6 +1,7 @@
 import Event from "../../models/event";
 import User from "../../models/users";
 import bcrypt from "bcryptjs";
+import Booking from "../../models/booking";
 
 interface EventInput {
   title: string;
@@ -17,17 +18,59 @@ const errFunction = (e: any) => {
   throw new Error("unable to save event because of this error: " + e.message);
 };
 
+const eventsBinds = async (eventIds: string) => {
+  const events = await Event.find({ _id: { $in: eventIds } });
+  return events.map((event) => {
+    return {
+      ...event._doc,
+      _id: event.id,
+      creator: userBinds.bind(this, event.creator),
+    };
+  });
+};
+
+const userBinds = async (userId: string) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("user does not exist");
+    }
+    const result = {
+      ...user._doc,
+      createdEvents: eventsBinds.bind(this, user._doc.createEvents),
+    };
+    return result;
+  } catch (e) {
+    return errFunction(e);
+  }
+};
+
 export default {
   Query: {
     async events() {
       try {
-        const events = await Event.find();
-        return events;
+        // const events = await Event.find();
+        // return events;
+        return Event.find().then((events) => {
+          return events.map((event) => {
+            return {
+              ...event._doc,
+              _id: event.id,
+              creator: userBinds.bind(this, event._doc.creator),
+            };
+          });
+        });
       } catch (e) {
         // const err = typeof e
         return errFunction(e);
       }
     },
+
+    // async bookings() {
+    //   const bookings = await Booking.find();
+    //   console.log(bookings);
+    //   return bookings;
+    // },
   },
 
   Mutation: {
@@ -50,8 +93,11 @@ export default {
         user.createEvents.push(event._id);
         user.save();
 
-        const result = await event.save();
-        console.log(result);
+        const event_save = await event.save();
+        const result = {
+          ...event_save._doc,
+          creator: userBinds.bind(this, event_save.creator),
+        };
         return result;
       } catch (e) {
         return errFunction(e);
@@ -78,5 +124,11 @@ export default {
 
       return result;
     },
+
+    // async bookEvent(_, { eventId }) {
+    //   const bookings = await Booking.find();
+    //   console.log(bookings);
+    //   return bookings;
+    // },
   },
 };

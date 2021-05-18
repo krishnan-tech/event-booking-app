@@ -1,6 +1,13 @@
 import { gql } from "apollo-server-express";
 
 export const typeDefs = gql`
+  type Booking {
+    event: Event!
+    user: User!
+    cratedAt: String!
+    updatedAt: String!
+  }
+
   type Event {
     _id: ID!
     title: String!
@@ -30,10 +37,13 @@ export const typeDefs = gql`
 
   type Query {
     events: [Event!]!
+    bookings: [Booking!]!
   }
 
   type Mutation {
     createEvent(eventInput: EventInput!): Event
     createUser(userInput: UserInput): User
+    bookEvent(eventId: ID!): Booking!
+    cancelBooking(bookingId: ID!): Event!
   }
 `;

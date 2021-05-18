@@ -1,6 +1,7 @@
 import { Document, model, Schema } from "mongoose";
 
 interface EventSchema extends Document {
+  _doc: any;
   title: string;
   description: string;
   price: number;
